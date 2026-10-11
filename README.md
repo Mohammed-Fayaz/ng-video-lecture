@@ -8,3 +8,36 @@ NOTE: sadly I did not go too much into model initialization in the video lecture
 ### License
 
 MIT
+
+
+## Local training and saved-model inference
+
+Run commands from this repository with the virtual environment's Python:
+
+```sh
+.venv/bin/python v2.py
+.venv/bin/python generate.py --prompt "ROMEO:" --tokens 500
+```
+
+Training automatically selects CUDA, Apple MPS, or CPU. It saves `latest.pt`
+and the lowest-validation-loss `best.pt` every 500 completed steps, and
+`final.pt` after 5,000 steps. Ctrl+C saves current weights to `interrupted.pt`;
+force-quitting or losing power can only preserve earlier completed saves.
+Checkpoints include model weights, architecture, character vocabulary, optimizer
+state and completed-step count. They are ignored by Git. There is no training
+resume command yet.
+
+Inference defaults to `checkpoints/best.pt`, disables dropout and gradient
+tracking, and does not need `input.txt`. Use `--checkpoint checkpoints/final.pt`
+to choose another checkpoint, `--device cpu` to override the device, or `--seed`
+to choose a sampling seed. Prompts must use characters from the training corpus.
+Here a token is one character. Running inference does not update model weights.
+
+For a short training check, use a separate directory to preserve full-run files:
+
+```sh
+.venv/bin/python v2.py --steps 2 --eval-iters 1 --batch-size 2 --checkpoint-dir checkpoints/smoke
+.venv/bin/python generate.py --checkpoint checkpoints/smoke/final.pt --prompt "ROMEO:" --tokens 20
+```
+
+The original tutorial architecture and attention scaling are retained in `v2.py`.
